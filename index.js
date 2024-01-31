@@ -39,15 +39,16 @@ async function run() {
     const propertyUpazilaCollection = client
       .db("propertyDB")
       .collection("propertyUpazila");
+    const tokenCollection = client.db("propertyDB").collection("allUserToken");
 
     // Add Property related api:
-    app.post("/addProperty", async (req, res) => {
+    app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
       const result = await addPropertyCollection.insertOne(addPropertyInfo);
       res.send(result);
     });
 
-    app.get("/addProperty", async (req, res) => {
+    app.get("/properties", async (req, res) => {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const searchData = req.query.searchData;
@@ -70,8 +71,9 @@ async function run() {
       res.send({ propertyPerPage, allProperty });
     });
 
-    app.get("/addProperty/:id", async (req, res) => {
-      const id = req.params._id;
+    app.get("/properties/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id)
       const query = { _id: new ObjectId(id) };
       const result = await addPropertyCollection.findOne(query);
       res.send(result);
@@ -99,6 +101,34 @@ async function run() {
 
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
+      res.send(result);
+    });
+
+    // add token for notification related api
+    app.post("/allUserToken", async (req, res) => {
+      const { token } = req.body;
+
+      try {
+        // Check if token already exists
+        const existingToken = await tokenCollection.findOne({ token });
+
+        if (existingToken) {
+          return res.status(400).send({ message: "Token already exists." });
+        }
+
+        // If token doesn't exist, insert the token
+        const result = await tokenCollection.insertOne({ token });
+        res.send(result);
+      } catch (error) {
+        console.error("Error inserting token:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    // get all token
+    app.get("/allUserToken", async (req, res) => {
+      const cursor = tokenCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
