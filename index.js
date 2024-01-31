@@ -43,14 +43,31 @@ async function run() {
     // Add Property related api:
     app.post("/addProperty", async (req, res) => {
       const addPropertyInfo = req.body;
-      console.log(addPropertyInfo);
       const result = await addPropertyCollection.insertOne(addPropertyInfo);
       res.send(result);
     });
 
     app.get("/addProperty", async (req, res) => {
-      const result = await addPropertyCollection.find().toArray();
-      res.send(result);
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const searchData = req.query.searchData;
+      let query = {};
+      if (searchData) {
+        const pattern = new RegExp(searchData, "i");
+        query = {
+          $or: [
+            { upazila: { $regex: pattern } },
+            { district: { $regex: pattern } },
+          ],
+        };
+      }
+      const propertyPerPage = await addPropertyCollection
+        .find(query)
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      const allProperty = await addPropertyCollection.find(query).toArray();
+      res.send({ propertyPerPage, allProperty });
     });
 
     app.get("/addProperty/:id", async (req, res) => {
@@ -70,6 +87,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/popularItem", async (req, res) => {
+      const result = await addPropertyCollection
+        .find()
+        .sort({ rent_price: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+      res.send(result);
+    });
+
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
       res.send(result);
@@ -86,6 +113,8 @@ async function run() {
       const result = await propertyUpazilaCollection.find().toArray();
       res.send(result);
     });
+
+    //pagination related
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
