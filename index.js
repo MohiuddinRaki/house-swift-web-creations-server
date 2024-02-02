@@ -31,6 +31,9 @@ async function run() {
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
+    const blogsDataCollection = client
+      .db("propertyDB")
+      .collection("blogsData");
 
     const propertyDistrictCollection = client
       .db("propertyDB")
@@ -101,6 +104,18 @@ async function run() {
 
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
+      res.send(result);
+    });
+
+    // blos related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
       res.send(result);
     });
 
