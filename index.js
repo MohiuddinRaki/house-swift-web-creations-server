@@ -31,9 +31,7 @@ async function run() {
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
-    const blogsDataCollection = client
-      .db("propertyDB")
-      .collection("blogsData");
+    const blogsDataCollection = client.db("propertyDB").collection("blogsData");
 
     const propertyDistrictCollection = client
       .db("propertyDB")
@@ -55,15 +53,13 @@ async function run() {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const searchData = req.query.searchData;
-      let query = {};
+      let query = { verification_status: "verified" };
       if (searchData) {
         const pattern = new RegExp(searchData, "i");
-        query = {
-          $or: [
-            { upazila: { $regex: pattern } },
-            { district: { $regex: pattern } },
-          ],
-        };
+        query.$or = [
+          { upazila: { $regex: pattern } },
+          { district: { $regex: pattern } },
+        ];
       }
       const propertyPerPage = await addPropertyCollection
         .find(query)
@@ -76,7 +72,7 @@ async function run() {
 
     app.get("/properties/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id)
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await addPropertyCollection.findOne(query);
       res.send(result);
@@ -92,15 +88,56 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/popularItem", async (req, res) => {
+    // puplar property related api:
+    app.get("/popularProperty", async (req, res) => {
       const result = await addPropertyCollection
-        .find()
+        .find({ verification_status: "verified" })
         .sort({ rent_price: 1 })
         .limit(6)
         .toArray();
       console.log(result);
       res.send(result);
     });
+
+    // searcging property related api:
+    // app.get("/searchingProperty", async (req, res) => {
+    //   const page = parseInt(req.query.page);
+    //   const size = parseInt(req.query.size);
+    //   const searchBedroom = req.query.searchBedroom;
+    //   const searchUpazila = req.query.searchUpazila;
+    //   const searchDistrict = req.query.searchDistrict;
+    //   const searchData = searchBedroom && searchUpazila && searchDistrict;
+    //   let query = {};
+    //   if (searchData) {
+    //     const pattern = new RegExp(searchData, "i");
+    //     query = {
+    //       $or: [
+    //         { upazila: { $regex: pattern } },
+    //         { district: { $regex: pattern } },
+    //         { bedroom: { $regex: pattern } },
+    //       ],
+    //     };
+    //   }
+    //   const propertyPerPage = await addPropertyCollection
+    //     .find(query)
+    //     .skip(page * size)
+    //     .limit(size)
+    //     .toArray();
+    //   const searchingProperty = await addPropertyCollection
+    //     .find(query)
+    //     .toArray();
+    //   res.send({ propertyPerPage, searchingProperty });
+    // });
+
+    // app.get("/searchingProperty", async (req, res) => {
+    //   const result = await addPropertyCollection
+    //     .find()
+    //     .sort({ rent_price: 1 })
+    //     .limit(6)
+    //     .toArray();
+    //   console.log(result);
+    //   res.send(result);
+    // });
 
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
