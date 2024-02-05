@@ -100,28 +100,28 @@ async function run() {
       res.send(result);
     });
 
-    // blos related api
-    app.get("/blogsData", async (req, res) => {
-      const result = await blogsDataCollection.find().toArray();
-      res.send(result);
-    });
-    app.get("/blogsData/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await blogsDataCollection.findOne(query);
-      res.send(result);
-    });
+      // blogs related api
+      app.get("/blogsData", async (req, res) => {
+        const result = await blogsDataCollection.find().toArray();
+        res.send(result);
+      });
+      app.get("/blogsData/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await blogsDataCollection.findOne(query);
+        res.send(result);
+      });
 
-    // popular Property related api:
-    app.get("/popularProperty", async (req, res) => {
-      const result = await addPropertyCollection
-        .find()
-        .sort({ rent_price: 1 })
-        .limit(6)
-        .toArray();
-      console.log(result);
-      res.send(result);
-    });
+      // popular Property related api:
+      app.get("/popularProperty", async (req, res) => {
+        const result = await addPropertyCollection
+          .find()
+          .sort({ rent_price: 1 })
+          .limit(6)
+          .toArray();
+        console.log(result);
+        res.send(result);
+      });
 
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
