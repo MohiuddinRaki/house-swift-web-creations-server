@@ -30,9 +30,9 @@ async function run() {
     const addPropertyCollection = client
       .db("propertyDB")
       .collection("addProperty");
-      const blogsDataCollection = client
-      .db("propertyDB")
-      .collection("blogsData");
+    // const blogsDataCollection = client
+    // .db("propertyDB")
+    // .collection("blogsData");
 
     const availablePropertyCollection = client
       .db("propertyDB")
@@ -100,29 +100,29 @@ async function run() {
       res.send(result);
     });
 
-      // blos related api
-      app.get("/blogsData", async (req, res) => {
-        const result = await blogsDataCollection.find().toArray();
-        res.send(result);
-      });
-      app.get("/blogsData/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await blogsDataCollection.findOne(query);
-        res.send(result);
-      });
+    // blos related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
+      res.send(result);
+    });
 
-      // popular Property related api:
-      app.get("/popularProperty", async (req, res) => {
-        const result = await addPropertyCollection
-          .find()
-          .sort({ rent_price: 1 })
-          .limit(6)
-          .toArray();
-        console.log(result);
-        res.send(result);
-      });
-  
+    // popular Property related api:
+    app.get("/popularProperty", async (req, res) => {
+      const result = await addPropertyCollection
+        .find()
+        .sort({ rent_price: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+      res.send(result);
+    });
+
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
       const addAvailableProperty = req.body;
@@ -152,31 +152,34 @@ async function run() {
 
     app.post("/allRewiews", async (req, res) => {
       const { reviewID } = req.body.allReviewData;
-    
+
       try {
         // Check if reviewID already exists
         const existingReview = await reviewCollection.findOne({ reviewID });
-    
+
         if (existingReview) {
-          return res.status(400).send({ message: "You already added your review" });
+          return res
+            .status(400)
+            .send({ message: "You already added your review" });
         }
-    
+
         // If review doesn't exist, insert the review data
-        const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
+        const result = await reviewCollection.insertOne({
+          reviewData: req.body.allReviewData,
+        });
         res.send(result);
       } catch (error) {
         console.error("Error inserting review:", error);
         res.status(500).send({ message: "Internal server error" });
       }
     });
-    
 
-// get all reviews
-app.get("/allRewiews", async (req, res) => {
-  const cursor = reviewCollection.find();
-  const result = await cursor.toArray();
-  res.send(result);
-});
+    // get all reviews
+    app.get("/allRewiews", async (req, res) => {
+      const cursor = reviewCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // add token for notification related api
     app.post("/allUserToken", async (req, res) => {
