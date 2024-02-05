@@ -24,9 +24,15 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+    const propertyUserCollection = client
+      .db("propertyDB")
+      .collection("propertyUsers");
     const addPropertyCollection = client
       .db("propertyDB")
       .collection("addProperty");
+      const blogsDataCollection = client
+      .db("propertyDB")
+      .collection("blogsData");
 
     const availablePropertyCollection = client
       .db("propertyDB")
@@ -42,13 +48,28 @@ async function run() {
       .collection("propertyUpazila");
     const tokenCollection = client.db("propertyDB").collection("allUserToken");
 
+    // user related api:
+    app.post("/propertyUsers", async (req, res) => {
+      const usersInfo = req?.body;
+      const query = { email: usersInfo?.email };
+      const existingUser = await propertyUserCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user alreday exist", insertedId: null });
+      }
+      const result = await propertyUserCollection.insertOne(usersInfo);
+      res.send(result);
+    });
+    app.get("/propertyUsers", async (req, res) => {
+      const result = await propertyUserCollection.find().toArray();
+      res.send(result);
+    });
+
     // Add Property related api:
     app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
       const result = await addPropertyCollection.insertOne(addPropertyInfo);
       res.send(result);
     });
-
     app.get("/properties", async (req, res) => {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
@@ -78,6 +99,29 @@ async function run() {
       res.send(result);
     });
 
+      // blos related api
+      app.get("/blogsData", async (req, res) => {
+        const result = await blogsDataCollection.find().toArray();
+        res.send(result);
+      });
+      app.get("/blogsData/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await blogsDataCollection.findOne(query);
+        res.send(result);
+      });
+
+      // popular Property related api:
+      app.get("/popularProperty", async (req, res) => {
+        const result = await addPropertyCollection
+          .find()
+          .sort({ rent_price: 1 })
+          .limit(6)
+          .toArray();
+        console.log(result);
+        res.send(result);
+      });
+  
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
       const addAvailableProperty = req.body;
@@ -87,57 +131,6 @@ async function run() {
       );
       res.send(result);
     });
-
-    // puplar property related api:
-    app.get("/popularProperty", async (req, res) => {
-      const result = await addPropertyCollection
-        .find({ verification_status: "verified" })
-        .sort({ rent_price: 1 })
-        .limit(6)
-        .toArray();
-      console.log(result);
-      res.send(result);
-    });
-
-    // searcging property related api:
-    // app.get("/searchingProperty", async (req, res) => {
-    //   const page = parseInt(req.query.page);
-    //   const size = parseInt(req.query.size);
-    //   const searchBedroom = req.query.searchBedroom;
-    //   const searchUpazila = req.query.searchUpazila;
-    //   const searchDistrict = req.query.searchDistrict;
-    //   const searchData = searchBedroom && searchUpazila && searchDistrict;
-    //   let query = {};
-    //   if (searchData) {
-    //     const pattern = new RegExp(searchData, "i");
-    //     query = {
-    //       $or: [
-    //         { upazila: { $regex: pattern } },
-    //         { district: { $regex: pattern } },
-    //         { bedroom: { $regex: pattern } },
-    //       ],
-    //     };
-    //   }
-    //   const propertyPerPage = await addPropertyCollection
-    //     .find(query)
-    //     .skip(page * size)
-    //     .limit(size)
-    //     .toArray();
-    //   const searchingProperty = await addPropertyCollection
-    //     .find(query)
-    //     .toArray();
-    //   res.send({ propertyPerPage, searchingProperty });
-    // });
-
-    // app.get("/searchingProperty", async (req, res) => {
-    //   const result = await addPropertyCollection
-    //     .find()
-    //     .sort({ rent_price: 1 })
-    //     .limit(6)
-    //     .toArray();
-    //   console.log(result);
-    //   res.send(result);
-    // });
 
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
