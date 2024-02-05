@@ -9,6 +9,10 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+//sajib database
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
+
+//rakib database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -60,6 +64,31 @@ async function run() {
       const result = await propertyUserCollection.find().toArray();
       res.send(result);
     });
+
+        // is admin
+    app.get("/propertyUsers/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await propertyUserCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user.role === "admin";
+      }
+      res.send({ admin })
+    })
+
+    // is Agent
+    app.get("/propertyUsers/agent/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await propertyUserCollection.findOne(query);
+      let agent = false;
+      if (user) {
+        agent = user.role === "agent";
+      }
+      res.send({ agent })
+    })
+
 
     // Add Property related api:
     app.post("/properties", async (req, res) => {
@@ -133,8 +162,6 @@ async function run() {
       const result = await availablePropertyCollection.find().toArray();
       res.send(result);
     });
-
-    // Rewiews related api
     app.post("/allRewiews", async (req, res) => {
       const { reviewID } = req.body.allReviewData;
       try {
