@@ -100,7 +100,7 @@ async function run() {
       res.send(result);
     });
 
-      // blos related api
+      // blogs related api
       app.get("/blogsData", async (req, res) => {
         const result = await blogsDataCollection.find().toArray();
         res.send(result);
