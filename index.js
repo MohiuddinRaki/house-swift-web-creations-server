@@ -73,7 +73,7 @@ async function run() {
     app.get("/propertyUsers/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-      const user = await userCollection.findOne(query);
+      const user = await propertyUserCollection.findOne(query);
       let admin = false;
       if (user) {
         admin = user.role === "admin";
@@ -85,7 +85,7 @@ async function run() {
     app.get("/propertyUsers/agent/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-      const user = await userCollection.findOne(query);
+      const user = await propertyUserCollection.findOne(query);
       let agent = false;
       if (user) {
         agent = user.role === "agent";
