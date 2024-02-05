@@ -37,6 +37,7 @@ async function run() {
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
+    const blogsDataCollection = client.db("propertyDB").collection("blogsData");
 
     const propertyDistrictCollection = client
       .db("propertyDB")
@@ -73,15 +74,13 @@ async function run() {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const searchData = req.query.searchData;
-      let query = {};
+      let query = { verification_status: "verified" };
       if (searchData) {
         const pattern = new RegExp(searchData, "i");
-        query = {
-          $or: [
-            { upazila: { $regex: pattern } },
-            { district: { $regex: pattern } },
-          ],
-        };
+        query.$or = [
+          { upazila: { $regex: pattern } },
+          { district: { $regex: pattern } },
+        ];
       }
       const propertyPerPage = await addPropertyCollection
         .find(query)
@@ -135,6 +134,18 @@ async function run() {
 
     app.get("/availableProperty", async (req, res) => {
       const result = await availablePropertyCollection.find().toArray();
+      res.send(result);
+    });
+
+    // blos related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
       res.send(result);
     });
 
