@@ -13,7 +13,10 @@ app.use(express.json());
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
 
 //rakib database
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
+
+// biplob database
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vsymadz.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -65,7 +68,31 @@ async function run() {
       res.send(result);
     });
 
-        // is admin
+    // delete propertyUsers 
+    app.delete('/propertyUsers/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await propertyUserCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    // update/patch /make admin user
+    app.patch('/propertyUsers/admin/:id', async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updatedInfo = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await propertyUserCollection.updateOne(filter, updatedInfo)
+      res.send(result)
+    })
+
+
+
+
+    // is admin
     app.get("/propertyUsers/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -125,28 +152,28 @@ async function run() {
       res.send(result);
     });
 
-      // blogs related api
-      app.get("/blogsData", async (req, res) => {
-        const result = await blogsDataCollection.find().toArray();
-        res.send(result);
-      });
-      app.get("/blogsData/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await blogsDataCollection.findOne(query);
-        res.send(result);
-      });
+    // blogs related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
+      res.send(result);
+    });
 
-      // popular Property related api:
-      app.get("/popularProperty", async (req, res) => {
-        const result = await addPropertyCollection
-          .find()
-          .sort({ rent_price: 1 })
-          .limit(6)
-          .toArray();
-        console.log(result);
-        res.send(result);
-      });
+    // popular Property related api:
+    app.get("/popularProperty", async (req, res) => {
+      const result = await addPropertyCollection
+        .find()
+        .sort({ rent_price: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+      res.send(result);
+    });
 
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
