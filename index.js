@@ -34,10 +34,6 @@ async function run() {
     const addPropertyCollection = client
       .db("propertyDB")
       .collection("addProperty");
-    // const blogsDataCollection = client
-    // .db("propertyDB")
-    // .collection("blogsData");
-
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
@@ -172,7 +168,6 @@ async function run() {
       res.send(result);
     });
 
-
     // wishlist package for tourist 
     app.get("/wishlists", async (req, res) => {
       const email = req.query.email;
@@ -224,19 +219,17 @@ async function run() {
       res.send(result);
     });
 
+
     app.post("/allRewiews", async (req, res) => {
       const { reviewID } = req.body.allReviewData;
-
       try {
         // Check if reviewID already exists
         const existingReview = await reviewCollection.findOne({ reviewID });
-
         if (existingReview) {
           return res
             .status(400)
             .send({ message: "You already added your review" });
         }
-
         // If review doesn't exist, insert the review data
         const result = await reviewCollection.insertOne({
           reviewData: req.body.allReviewData,
@@ -247,7 +240,6 @@ async function run() {
         res.status(500).send({ message: "Internal server error" });
       }
     });
-
     // get all reviews
     app.get("/allRewiews", async (req, res) => {
       const cursor = reviewCollection.find();
@@ -294,8 +286,6 @@ async function run() {
       const result = await propertyUpazilaCollection.find().toArray();
       res.send(result);
     });
-
-    //pagination related
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
