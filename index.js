@@ -221,31 +221,35 @@ async function run() {
 
 
     app.post("/allRewiews", async (req, res) => {
-      const { reviewID } = req.body.allReviewData;
+
+      const { reviewID, userEmail } = req.body.allReviewData;
       try {
-        // Check if reviewID already exists
-        const existingReview = await reviewCollection.findOne({ reviewID });
+        const existingReview = await reviewCollection.findOne({ "reviewData.reviewID": reviewID, "reviewData.userEmail": userEmail });
+    
         if (existingReview) {
           return res
             .status(400)
             .send({ message: "You already added your review" });
         }
-        // If review doesn't exist, insert the review data
-        const result = await reviewCollection.insertOne({
-          reviewData: req.body.allReviewData,
-        });
+
+        const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
+
         res.send(result);
       } catch (error) {
         console.error("Error inserting review:", error);
         res.status(500).send({ message: "Internal server error" });
       }
     });
-    // get all reviews
-    app.get("/allRewiews", async (req, res) => {
-      const cursor = reviewCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+
+    
+    
+
+// get all reviews
+app.get("/allRewiews", async (req, res) => {
+  const cursor = reviewCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
 
     // add token for notification related api
     app.post("/allUserToken", async (req, res) => {
