@@ -19,7 +19,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    // strict: true,
     deprecationErrors: true,
   },
 });
@@ -65,7 +65,7 @@ async function run() {
       res.send(result);
     });
 
-        // is admin
+    // is admin
     app.get("/propertyUsers/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -74,8 +74,8 @@ async function run() {
       if (user) {
         admin = user.role === "admin";
       }
-      res.send({ admin })
-    })
+      res.send({ admin });
+    });
 
     // is Agent
     app.get("/propertyUsers/agent/:email", async (req, res) => {
@@ -86,9 +86,8 @@ async function run() {
       if (user) {
         agent = user.role === "agent";
       }
-      res.send({ agent })
-    })
-
+      res.send({ agent });
+    });
 
     // Add Property related api:
     app.post("/properties", async (req, res) => {
@@ -125,28 +124,35 @@ async function run() {
       res.send(result);
     });
 
-      // blogs related api
-      app.get("/blogsData", async (req, res) => {
-        const result = await blogsDataCollection.find().toArray();
-        res.send(result);
-      });
-      app.get("/blogsData/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await blogsDataCollection.findOne(query);
-        res.send(result);
-      });
+    app.get("/agentProperties/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { agent_email: email };
+      const result = await addPropertyCollection.find(query).toArray();
+      res.send(result);
+    });
 
-      // popular Property related api:
-      app.get("/popularProperty", async (req, res) => {
-        const result = await addPropertyCollection
-          .find()
-          .sort({ rent_price: 1 })
-          .limit(6)
-          .toArray();
-        console.log(result);
-        res.send(result);
-      });
+    // blogs related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
+      res.send(result);
+    });
+
+    // popular Property related api:
+    app.get("/popularProperty", async (req, res) => {
+      const result = await addPropertyCollection
+        .find()
+        .sort({ rent_price: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+      res.send(result);
+    });
 
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
@@ -214,6 +220,7 @@ async function run() {
     app.get("/allUserToken", async (req, res) => {
       const cursor = tokenCollection.find();
       const result = await cursor.toArray();
+      console.log(result);
       res.send(result);
     });
 
@@ -227,6 +234,39 @@ async function run() {
     app.get("/propertyUpazila", async (req, res) => {
       const result = await propertyUpazilaCollection.find().toArray();
       res.send(result);
+    });
+
+    //recommendation related api
+
+    app.get("/recommendation", async (req, res) => {
+      try {
+        const searchData = req.query.searchData;
+        const options = {
+          projection: { upazila: 1, district: 1 },
+        };
+        let filter = {};
+        if (searchData) {
+          const pattern = new RegExp(searchData, "i");
+          filter = {
+            $or: [
+              { upazila: { $regex: pattern } },
+              { district: { $regex: pattern } },
+            ],
+          };
+          const uniqueDistrict = await addPropertyCollection.distinct(
+            "district",
+            filter
+          );
+          const uniqueUpazila = await addPropertyCollection.distinct(
+            "upazila",
+            filter
+          );
+          const result = [...uniqueDistrict, ...uniqueUpazila];
+          res.send(result);
+        }
+      } catch (err) {
+        console.log(err.message);
+      }
     });
 
     // Send a ping to confirm a successful connection
