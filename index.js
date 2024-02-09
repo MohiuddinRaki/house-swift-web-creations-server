@@ -15,6 +15,9 @@ app.use(express.json());
 //rakib database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
 
+// biplob database
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vsymadz.mongodb.net/?retryWrites=true&w=majority`;
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -37,6 +40,9 @@ async function run() {
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
+    const wishlistCollection = client
+      .db("propertyDB")
+      .collection("wishlists");
     const blogsDataCollection = client.db("propertyDB").collection("blogsData");
 
     const propertyDistrictCollection = client
@@ -65,6 +71,38 @@ async function run() {
       res.send(result);
     });
 
+    // delete propertyUsers 
+    app.delete('/propertyUsers/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await propertyUserCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    // update/patch /make admin user
+    app.patch('/propertyUsers/admin/:id', async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updatedInfo = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await propertyUserCollection.updateOne(filter, updatedInfo)
+      res.send(result)
+    })
+    app.patch('/propertyUsers/agent/:id', async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updatedInfo = {
+        $set: {
+          role: 'agent'
+        }
+      }
+      const result = await propertyUserCollection.updateOne(filter, updatedInfo)
+      res.send(result)
+    })
+    
     // is admin
     app.get("/propertyUsers/admin/:email", async (req, res) => {
       const email = req.params.email;
@@ -76,7 +114,6 @@ async function run() {
       }
       res.send({ admin });
     });
-
     // is Agent
     app.get("/propertyUsers/agent/:email", async (req, res) => {
       const email = req.params.email;
@@ -88,7 +125,6 @@ async function run() {
       }
       res.send({ agent });
     });
-
     // Add Property related api:
     app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
@@ -131,6 +167,14 @@ async function run() {
       res.send(result);
     });
 
+    // delete property 
+    app.delete('/properties/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await addPropertyCollection.deleteOne(query)
+      res.send(result)
+    })
+
     // blogs related api
     app.get("/blogsData", async (req, res) => {
       const result = await blogsDataCollection.find().toArray();
@@ -168,32 +212,77 @@ async function run() {
       const result = await availablePropertyCollection.find().toArray();
       res.send(result);
     });
+
+    // wishlist package for tourist 
+    app.get("/wishlists", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await wishlistCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.post("/wishlists", async (req, res) => {
+      const { wishlistId, userEmail } = req.body;
+        const existingWishlist = await wishlistCollection.findOne({ "wishlistId": wishlistId, "userEmail": userEmail });
+    
+        if (existingWishlist) {
+          return res.status(400).send({ message: "You already added your wishlist" });
+        }
+    
+        const result = await wishlistCollection.insertOne(req.body);
+        res.send(result);
+
+    });
+
+    app.delete('/wishlists/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishlistCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
+
+    // blos related api
+    app.get("/blogsData", async (req, res) => {
+      const result = await blogsDataCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/blogsData/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogsDataCollection.findOne(query);
+      res.send(result);
+    });
+
+
     app.post("/allRewiews", async (req, res) => {
-      const { reviewID } = req.body.allReviewData;
+
+
+      const { reviewID, userEmail } = req.body.allReviewData;
       try {
-        // Check if reviewID already exists
-        const existingReview = await reviewCollection.findOne({ reviewID });
+        const existingReview = await reviewCollection.findOne({ "reviewData.reviewID": reviewID, "reviewData.userEmail": userEmail });
+   
         if (existingReview) {
           return res
             .status(400)
             .send({ message: "You already added your review" });
         }
-        // If review doesn't exist, insert the review data
-        const result = await reviewCollection.insertOne({
-          reviewData: req.body.allReviewData,
-        });
+
+        const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
+
         res.send(result);
-      } catch (error) {
-        console.error("Error inserting review:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
     });
-    // get all reviews
-    app.get("/allRewiews", async (req, res) => {
-      const cursor = reviewCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+
+    
+    
+
+// get all reviews
+app.get("/allRewiews", async (req, res) => {
+  const cursor = reviewCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
 
     // add token for notification related api
     app.post("/allUserToken", async (req, res) => {
@@ -281,9 +370,16 @@ async function run() {
 }
 run().catch(console.dir);
 
+
+
 app.get("/", (req, res) => {
   res.send("house-swift-web-creations-server is Running");
 });
 app.listen(port, () => {
   console.log(`house-swift-web-creations-server is Running on port ${port}`);
 });
+
+
+
+
+
