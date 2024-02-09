@@ -10,10 +10,10 @@ app.use(cors());
 app.use(express.json());
 
 //sajib database
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
 
 //rakib database
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rxjjt.mongodb.net/?retryWrites=true&w=majority`;
 
 // biplob database
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vsymadz.mongodb.net/?retryWrites=true&w=majority`;
@@ -264,10 +264,11 @@ async function run() {
 
     app.post("/allRewiews", async (req, res) => {
 
+
       const { reviewID, userEmail } = req.body.allReviewData;
       try {
         const existingReview = await reviewCollection.findOne({ "reviewData.reviewID": reviewID, "reviewData.userEmail": userEmail });
-    
+   
         if (existingReview) {
           return res
             .status(400)
@@ -277,10 +278,6 @@ async function run() {
         const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
 
         res.send(result);
-      } catch (error) {
-        console.error("Error inserting review:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
     });
 
     
