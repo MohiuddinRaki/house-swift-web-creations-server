@@ -22,7 +22,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
-    strict: true,
+    // strict: true,
     deprecationErrors: true,
   },
 });
@@ -71,7 +71,6 @@ async function run() {
       res.send(result);
     });
 
-
     // delete propertyUsers 
     app.delete('/propertyUsers/:id', async (req, res) => {
       const id = req.params.id
@@ -113,10 +112,8 @@ async function run() {
       if (user) {
         admin = user.role === "admin";
       }
-      res.send({ admin })
-    })
-    
-
+      res.send({ admin });
+    });
     // is Agent
     app.get("/propertyUsers/agent/:email", async (req, res) => {
       const email = req.params.email;
@@ -126,9 +123,8 @@ async function run() {
       if (user) {
         agent = user.role === "agent";
       }
-      res.send({ agent })
-    })
-
+      res.send({ agent });
+    });
     // Add Property related api:
     app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
@@ -161,6 +157,13 @@ async function run() {
       console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await addPropertyCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/agentProperties/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { agent_email: email };
+      const result = await addPropertyCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -218,7 +221,6 @@ async function run() {
       res.send(result)
     })
 
-
     app.post("/wishlists", async (req, res) => {
       const { wishlistId, userEmail } = req.body;
         const existingWishlist = await wishlistCollection.findOne({ "wishlistId": wishlistId, "userEmail": userEmail });
@@ -231,14 +233,6 @@ async function run() {
         res.send(result);
 
     });
-  
-
-
-    // app.post("/wishlists", async (req, res) => {
-    //   const propertyDetails = req.body;
-    //   const result = await wishlistCollection.insertOne(propertyDetails);
-    //   res.send(result)
-    // })
 
     app.delete('/wishlists/:id', async (req, res) => {
       const id = req.params.id;
@@ -315,6 +309,7 @@ app.get("/allRewiews", async (req, res) => {
     app.get("/allUserToken", async (req, res) => {
       const cursor = tokenCollection.find();
       const result = await cursor.toArray();
+      console.log(result);
       res.send(result);
     });
 
@@ -328,6 +323,39 @@ app.get("/allRewiews", async (req, res) => {
     app.get("/propertyUpazila", async (req, res) => {
       const result = await propertyUpazilaCollection.find().toArray();
       res.send(result);
+    });
+
+    //recommendation related api
+
+    app.get("/recommendation", async (req, res) => {
+      try {
+        const searchData = req.query.searchData;
+        const options = {
+          projection: { upazila: 1, district: 1 },
+        };
+        let filter = {};
+        if (searchData) {
+          const pattern = new RegExp(searchData, "i");
+          filter = {
+            $or: [
+              { upazila: { $regex: pattern } },
+              { district: { $regex: pattern } },
+            ],
+          };
+          const uniqueDistrict = await addPropertyCollection.distinct(
+            "district",
+            filter
+          );
+          const uniqueUpazila = await addPropertyCollection.distinct(
+            "upazila",
+            filter
+          );
+          const result = [...uniqueDistrict, ...uniqueUpazila];
+          res.send(result);
+        }
+      } catch (err) {
+        console.log(err.message);
+      }
     });
 
     // Send a ping to confirm a successful connection
