@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
@@ -56,6 +56,26 @@ async function run() {
     const reviewCollection = client.db("propertyDB").collection("allRewiews");
 
     // user related api:
+
+    app.get("/user/admin/:email", async (req, res) => {
+      const email = req?.params?.email;
+      const query = { email: email };
+      const user = await propertyUserCollection.findOne(query);
+      if (user) {
+        if (user?.role === "user") {
+          res.send({ role: user?.role });
+        } else if (user?.role === "agent") {
+          res.send({ role: user?.role });
+        } else if (user?.role === "admin") {
+          res.send({ role: user?.role });
+        } else {
+          res.send({ message: "unauthorized access" });
+        }
+      } else {
+        res.send({ message: "user not found" });
+      }
+    });
+
     app.post("/propertyUsers", async (req, res) => {
       const usersInfo = req?.body;
       const query = { email: usersInfo?.email };
@@ -104,30 +124,31 @@ async function run() {
     })
     
     // is admin
-    app.get("/propertyUsers/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const user = await propertyUserCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user.role === "admin";
-      }
-      res.send({ admin });
-    });
+    // app.get("/propertyUsers/admin/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const user = await propertyUserCollection.findOne(query);
+    //   let admin = false;
+    //   if (user) {
+    //     admin = user.role === "admin";
+    //   }
+    //   res.send({ admin });
+    // });
     // is Agent
-    app.get("/propertyUsers/agent/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const user = await propertyUserCollection.findOne(query);
-      let agent = false;
-      if (user) {
-        agent = user.role === "agent";
-      }
-      res.send({ agent });
-    });
+    // app.get("/propertyUsers/agent/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const user = await propertyUserCollection.findOne(query);
+    //   let agent = false;
+    //   if (user) {
+    //     agent = user.role === "agent";
+    //   }
+    //   res.send({ agent });
+    // });
     // Add Property related api:
     app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
+      console.log("202020" , addPropertyInfo)
       const result = await addPropertyCollection.insertOne(addPropertyInfo);
       res.send(result);
     });
@@ -154,7 +175,7 @@ async function run() {
 
     app.get("/properties/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await addPropertyCollection.findOne(query);
       res.send(result);
@@ -194,14 +215,14 @@ async function run() {
         .sort({ rent_price: 1 })
         .limit(6)
         .toArray();
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
     // available Property related api:
     app.post("/availableProperty", async (req, res) => {
       const addAvailableProperty = req.body;
-      console.log(addAvailableProperty);
+      // console.log(addAvailableProperty);
       const result = await availablePropertyCollection.insertOne(
         addAvailableProperty
       );
@@ -216,7 +237,7 @@ async function run() {
     // wishlist package for tourist 
     app.get("/wishlists", async (req, res) => {
       const email = req.query.email;
-      const query = { email: email };
+      const query = { userEmail: email };
       const result = await wishlistCollection.find(query).toArray();
       res.send(result)
     })
@@ -313,7 +334,7 @@ app.get("/allRewiews", async (req, res) => {
     app.get("/allUserToken", async (req, res) => {
       const cursor = tokenCollection.find();
       const result = await cursor.toArray();
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
@@ -358,7 +379,7 @@ app.get("/allRewiews", async (req, res) => {
           res.send(result);
         }
       } catch (err) {
-        console.log(err.message);
+        // console.log(err.message);
       }
     });
 
