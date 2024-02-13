@@ -258,11 +258,10 @@ async function run() {
 
     app.post("/allRewiews", async (req, res) => {
 
-
       const { reviewID, userEmail } = req.body.allReviewData;
       try {
         const existingReview = await reviewCollection.findOne({ "reviewData.reviewID": reviewID, "reviewData.userEmail": userEmail });
-   
+    
         if (existingReview) {
           return res
             .status(400)
@@ -272,7 +271,12 @@ async function run() {
         const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
 
         res.send(result);
+      } catch (error) {
+        console.error("Error inserting review:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
+
 
     
     
@@ -378,7 +382,6 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`house-swift-web-creations-server is Running on port ${port}`);
 });
-
 
 
 
