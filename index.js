@@ -122,6 +122,37 @@ async function run() {
       const result = await propertyUserCollection.updateOne(filter, updatedInfo)
       res.send(result)
     })
+
+    app.patch("/user/makeFraud/:id", async (req, res) => {
+      const id = req.params.id;
+      const email = req.query.email;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          role: "fraud",
+        },
+      };
+      const query = { agent_email: email };
+      const deleteProperties = await addPropertyCollection.deleteMany(query);
+      const deleteWishlist = await wishlistCollection.deleteMany(query);
+      const result = await propertyUserCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    app.get("/agentproperties" , async (req, res) => {
+      const email = req.query.email;
+      let query = { verification_status: "verified" };
+      if (email) {
+        query = { agent_email: email };
+      }
+      const result = await addPropertyCollection.find(query).toArray();
+      res.send(result);
+    });
     
     // is admin
     // app.get("/propertyUsers/admin/:email", async (req, res) => {
