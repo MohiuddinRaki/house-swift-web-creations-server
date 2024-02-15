@@ -54,6 +54,7 @@ async function run() {
       .collection("propertyUpazila");
     const tokenCollection = client.db("propertyDB").collection("allUserToken");
     const reviewCollection = client.db("propertyDB").collection("allRewiews");
+    const bookingCollection = client.db("propertyDB").collection("mybooking");
 
     // user related api:
 
@@ -380,6 +381,23 @@ app.get("/allRewiews", async (req, res) => {
       const result = await propertyUpazilaCollection.find().toArray();
       res.send(result);
     });
+
+
+// booking related apis
+// post the booking
+app.post("/mybooking", async (req, res) => {
+  const bookingInfo = req.body;
+  console.log("202020" , bookingInfo)
+  const result = await bookingCollection.insertOne(bookingInfo);
+  res.send(result);
+});
+// get the booking
+app.get("/mybooking", async (req, res) => {
+  const cursor = bookingCollection.find();
+  const result = await cursor.toArray();
+  // console.log(result);
+  res.send(result);
+});
 
     //recommendation related api
 
