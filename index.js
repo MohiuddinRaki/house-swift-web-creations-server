@@ -415,15 +415,16 @@ async function run() {
   // update date 
   app.patch(`/mybooking/:id`, async (req, res) => {
     const id = req.params.id;
-    const Check_In_Date = req.body.Check_In_Date;
-    const Check_out_Date = req.body.Check_out_Date;
+    const Chack_In_Date = req.body.Chack_In_Date;
+    // console.log(req.body.Chack_In_Date)
+    const Chack_out_Date = req.body.Chack_out_Date;
   
     const query = { _id: new ObjectId(id) };
     const options = { upsert: true };
     const updateDoc = {
       $set: {
-        Check_In_Date: Check_In_Date,
-        Check_out_Date: Check_out_Date
+        Chack_In_Date: Chack_In_Date,
+        Chack_out_Date: Chack_out_Date
       }
     };
     try {
