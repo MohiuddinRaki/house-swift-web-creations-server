@@ -9,6 +9,7 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+
 //sajib database
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -402,6 +403,39 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
+    // for id wise get
+        app.get('/mybooking/:id',async(req,res)=>{
+      const id =req.params.id;
+      const query={_id: new ObjectId(id)};
+      const result=await bookingCollection.findOne(query);
+      res.send(result)
+    })
+
+
+  // update date 
+  app.patch(`/mybooking/:id`, async (req, res) => {
+    const id = req.params.id;
+    const Check_In_Date = req.body.Check_In_Date;
+    const Check_out_Date = req.body.Check_out_Date;
+  
+    const query = { _id: new ObjectId(id) };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: {
+        Check_In_Date: Check_In_Date,
+        Check_out_Date: Check_out_Date
+      }
+    };
+    try {
+      // Update the first document that matches the filter
+      const result = await bookingCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
+  
 
     // user wise booking
     app.get("/mybooking", async (req, res) => {
