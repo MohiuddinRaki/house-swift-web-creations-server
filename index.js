@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
@@ -8,6 +8,7 @@ const port = process.env.PORT || 4000;
 // middleware:
 app.use(cors());
 app.use(express.json());
+
 
 //sajib database
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
@@ -40,9 +41,7 @@ async function run() {
     const availablePropertyCollection = client
       .db("propertyDB")
       .collection("AvailableProperty");
-    const wishlistCollection = client
-      .db("propertyDB")
-      .collection("wishlists");
+    const wishlistCollection = client.db("propertyDB").collection("wishlists");
     const blogsDataCollection = client.db("propertyDB").collection("blogsData");
 
     const propertyDistrictCollection = client
@@ -54,6 +53,7 @@ async function run() {
       .collection("propertyUpazila");
     const tokenCollection = client.db("propertyDB").collection("allUserToken");
     const reviewCollection = client.db("propertyDB").collection("allRewiews");
+    const bookingCollection = client.db("propertyDB").collection("mybooking");
 
     // user related api:
 
@@ -91,37 +91,43 @@ async function run() {
       res.send(result);
     });
 
-    // delete propertyUsers 
-    app.delete('/propertyUsers/:id', async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await propertyUserCollection.deleteOne(query)
-      res.send(result)
-    })
+    // delete propertyUsers
+    app.delete("/propertyUsers/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertyUserCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // update/patch /make admin user
-    app.patch('/propertyUsers/admin/:id', async (req, res) => {
-      const id = req.params.id
-      const filter = { _id: new ObjectId(id) }
+    app.patch("/propertyUsers/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
       const updatedInfo = {
         $set: {
-          role: 'admin'
-        }
-      }
-      const result = await propertyUserCollection.updateOne(filter, updatedInfo)
-      res.send(result)
-    })
-    app.patch('/propertyUsers/agent/:id', async (req, res) => {
-      const id = req.params.id
-      const filter = { _id: new ObjectId(id) }
+          role: "admin",
+        },
+      };
+      const result = await propertyUserCollection.updateOne(
+        filter,
+        updatedInfo
+      );
+      res.send(result);
+    });
+    app.patch("/propertyUsers/agent/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
       const updatedInfo = {
         $set: {
-          role: 'agent'
-        }
-      }
-      const result = await propertyUserCollection.updateOne(filter, updatedInfo)
-      res.send(result)
-    })
+          role: "agent",
+        },
+      };
+      const result = await propertyUserCollection.updateOne(
+        filter,
+        updatedInfo
+      );
+      res.send(result);
+    });
 
     app.patch("/user/makeFraud/:id", async (req, res) => {
       const id = req.params.id;
@@ -144,7 +150,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/agentproperties" , async (req, res) => {
+    app.get("/agentproperties", async (req, res) => {
       const email = req.query.email;
       let query = { verification_status: "verified" };
       if (email) {
@@ -153,7 +159,7 @@ async function run() {
       const result = await addPropertyCollection.find(query).toArray();
       res.send(result);
     });
-    
+
     // is admin
     // app.get("/propertyUsers/admin/:email", async (req, res) => {
     //   const email = req.params.email;
@@ -179,7 +185,7 @@ async function run() {
     // Add Property related api:
     app.post("/properties", async (req, res) => {
       const addPropertyInfo = req.body;
-      console.log("202020" , addPropertyInfo)
+      console.log("202020", addPropertyInfo);
       const result = await addPropertyCollection.insertOne(addPropertyInfo);
       res.send(result);
     });
@@ -219,13 +225,13 @@ async function run() {
       res.send(result);
     });
 
-    // delete property 
-    app.delete('/properties/:id', async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await addPropertyCollection.deleteOne(query)
-      res.send(result)
-    })
+    // delete property
+    app.delete("/properties/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addPropertyCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // blogs related api
     app.get("/blogsData", async (req, res) => {
@@ -265,35 +271,37 @@ async function run() {
       res.send(result);
     });
 
-    // wishlist package for tourist 
+    // wishlist package for tourist
     app.get("/wishlists", async (req, res) => {
       const email = req.query.email;
       const query = { userEmail: email };
       const result = await wishlistCollection.find(query).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     app.post("/wishlists", async (req, res) => {
       const { wishlistId, userEmail } = req.body;
-        const existingWishlist = await wishlistCollection.findOne({ "wishlistId": wishlistId, "userEmail": userEmail });
-    
-        if (existingWishlist) {
-          return res.status(400).send({ message: "You already added your wishlist" });
-        }
-    
-        const result = await wishlistCollection.insertOne(req.body);
-        res.send(result);
+      const existingWishlist = await wishlistCollection.findOne({
+        wishlistId: wishlistId,
+        userEmail: userEmail,
+      });
 
+      if (existingWishlist) {
+        return res
+          .status(400)
+          .send({ message: "You already added your wishlist" });
+      }
+
+      const result = await wishlistCollection.insertOne(req.body);
+      res.send(result);
     });
 
-    app.delete('/wishlists/:id', async (req, res) => {
+    app.delete("/wishlists/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await wishlistCollection.deleteOne(query);
       res.send(result);
-    })
-
-
+    });
 
     // blos related api
     app.get("/blogsData", async (req, res) => {
@@ -307,20 +315,23 @@ async function run() {
       res.send(result);
     });
 
-
     app.post("/allRewiews", async (req, res) => {
-
       const { reviewID, userEmail } = req.body.allReviewData;
       try {
-        const existingReview = await reviewCollection.findOne({ "reviewData.reviewID": reviewID, "reviewData.userEmail": userEmail });
-    
+        const existingReview = await reviewCollection.findOne({
+          "reviewData.reviewID": reviewID,
+          "reviewData.userEmail": userEmail,
+        });
+
         if (existingReview) {
           return res
             .status(400)
             .send({ message: "You already added your review" });
         }
 
-        const result = await reviewCollection.insertOne({ reviewData: req.body.allReviewData });
+        const result = await reviewCollection.insertOne({
+          reviewData: req.body.allReviewData,
+        });
 
         res.send(result);
       } catch (error) {
@@ -329,16 +340,12 @@ async function run() {
       }
     });
 
-
-    
-    
-
-// get all reviews
-app.get("/allRewiews", async (req, res) => {
-  const cursor = reviewCollection.find();
-  const result = await cursor.toArray();
-  res.send(result);
-});
+    // get all reviews
+    app.get("/allRewiews", async (req, res) => {
+      const cursor = reviewCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // add token for notification related api
     app.post("/allUserToken", async (req, res) => {
@@ -381,6 +388,74 @@ app.get("/allRewiews", async (req, res) => {
       res.send(result);
     });
 
+    // booking related apis
+    // post the booking
+    app.post("/mybooking", async (req, res) => {
+      const bookingInfo = req.body;
+      console.log("202020", bookingInfo);
+      const result = await bookingCollection.insertOne(bookingInfo);
+      res.send(result);
+    });
+    // get the booking
+    app.get("/mybooking", async (req, res) => {
+      const cursor = bookingCollection.find();
+      const result = await cursor.toArray();
+      // console.log(result);
+      res.send(result);
+    });
+    // for id wise get
+        app.get('/mybooking/:id',async(req,res)=>{
+      const id =req.params.id;
+      const query={_id: new ObjectId(id)};
+      const result=await bookingCollection.findOne(query);
+      res.send(result)
+    })
+
+
+  // update date 
+  app.patch(`/mybooking/:id`, async (req, res) => {
+    const id = req.params.id;
+    const Chack_In_Date = req.body.Chack_In_Date;
+    // console.log(req.body.Chack_In_Date)
+    const Chack_out_Date = req.body.Chack_out_Date;
+  
+    const query = { _id: new ObjectId(id) };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: {
+        Chack_In_Date: Chack_In_Date,
+        Chack_out_Date: Chack_out_Date
+      }
+    };
+    try {
+      // Update the first document that matches the filter
+      const result = await bookingCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
+  
+
+    // user wise booking
+    app.get("/mybooking", async (req, res) => {
+      // console.log(req.query.customerName);
+      console.log("from valid user", req.user);
+      let query = {};
+      if (req.query?.userEmailmail) {
+        query = { email: req.query.userEmailmail };
+      }
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    });
+// Corrected route for delete
+app.delete('/mybooking/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await bookingCollection.deleteOne(query);
+  res.send(result);
+});
     //recommendation related api
 
     app.get("/recommendation", async (req, res) => {
@@ -426,15 +501,9 @@ app.get("/allRewiews", async (req, res) => {
 }
 run().catch(console.dir);
 
-
-
 app.get("/", (req, res) => {
   res.send("house-swift-web-creations-server is Running");
 });
 app.listen(port, () => {
   console.log(`house-swift-web-creations-server is Running on port ${port}`);
 });
-
-
-
-
