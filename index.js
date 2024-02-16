@@ -414,7 +414,13 @@ async function run() {
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
     });
-
+// Corrected route for delete
+app.delete('/mybooking/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await bookingCollection.deleteOne(query);
+  res.send(result);
+});
     //recommendation related api
 
     app.get("/recommendation", async (req, res) => {
