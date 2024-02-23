@@ -9,7 +9,6 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-
 //sajib database
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.v61q93t.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -404,39 +403,41 @@ async function run() {
       res.send(result);
     });
     // for id wise get
-        app.get('/mybooking/:id',async(req,res)=>{
-      const id =req.params.id;
-      const query={_id: new ObjectId(id)};
-      const result=await bookingCollection.findOne(query);
-      res.send(result)
-    })
-
-
-  // update date 
-  app.patch(`/mybooking/:id`, async (req, res) => {
-    const id = req.params.id;
-    const Chack_In_Date = req.body.Chack_In_Date;
-    // console.log(req.body.Chack_In_Date)
-    const Chack_out_Date = req.body.Chack_out_Date;
-  
-    const query = { _id: new ObjectId(id) };
-    const options = { upsert: true };
-    const updateDoc = {
-      $set: {
-        Chack_In_Date: Chack_In_Date,
-        Chack_out_Date: Chack_out_Date
-      }
-    };
-    try {
-      // Update the first document that matches the filter
-      const result = await bookingCollection.updateOne(query, updateDoc, options);
+    app.get("/mybooking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.findOne(query);
       res.send(result);
-    } catch (error) {
-      console.error("Error updating booking:", error);
-      res.status(500).send({ message: "Internal server error" });
-    }
-  });
-  
+    });
+
+    // update date
+    app.patch(`/mybooking/:id`, async (req, res) => {
+      const id = req.params.id;
+      const Chack_In_Date = req.body.Chack_In_Date;
+      // console.log(req.body.Chack_In_Date)
+      const Chack_out_Date = req.body.Chack_out_Date;
+
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          Chack_In_Date: Chack_In_Date,
+          Chack_out_Date: Chack_out_Date,
+        },
+      };
+      try {
+        // Update the first document that matches the filter
+        const result = await bookingCollection.updateOne(
+          query,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating booking:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
 
     // user wise booking
     app.get("/mybooking", async (req, res) => {
@@ -449,13 +450,13 @@ async function run() {
       const result = await bookingCollection.find(query).toArray();
       res.send(result);
     });
-// Corrected route for delete
-app.delete('/mybooking/:id', async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  const result = await bookingCollection.deleteOne(query);
-  res.send(result);
-});
+    // Corrected route for delete
+    app.delete("/mybooking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
     //recommendation related api
 
     app.get("/recommendation", async (req, res) => {
@@ -486,6 +487,33 @@ app.delete('/mybooking/:id', async (req, res) => {
         }
       } catch (err) {
         // console.log(err.message);
+      }
+    });
+
+    app.get("/propertyRecommendation", async (req, res) => {
+      try {
+        const data = req.query;
+        const name = data.name;
+        const bedroom = data.bedroom;
+        const district = data.district;
+        console.log(name, bedroom, district);
+        const query = {
+          $or: [{ name: name }, { bedroom: bedroom }, { district: district }],
+          $and: [{ verification_status: "verified" }],
+        };
+        const result = await addPropertyCollection.find(query).toArray();
+        console.log(result.length);
+        if (result <= 6) {
+          res.send({ data: result });
+        } else {
+          const result = await addPropertyCollection
+            .find(query)
+            .limit(6)
+            .toArray();
+          res.send({ data: result });
+        }
+      } catch (err) {
+        console.log(err);
       }
     });
 
