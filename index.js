@@ -410,7 +410,26 @@ async function run() {
       const result=await bookingCollection.findOne(query);
       res.send(result)
     })
+    app.get("/allProperties/filterByPrice", async (req, res) => {
+      try {
+        const minPrice = "500";
+        const maxPrice = "900";
 
+        const query = {
+          rent_price: { $gte: minPrice, $lte: maxPrice },
+        };
+
+        // console.log(query)
+
+        // Query the database to find properties within the specified rent_price range
+        const filteredProperties = await addPropertyCollection.find(query).toArray();
+
+        res.send(filteredProperties);
+      } catch (error) {
+        console.error("Error while fetching filtered properties:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
 
   // update date 
   app.patch(`/mybooking/:id`, async (req, res) => {
