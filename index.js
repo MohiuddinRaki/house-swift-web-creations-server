@@ -6,7 +6,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 4000;
 
 // middleware:
-app.use(cors());
+const corsConfig = {
+  origin: '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+  }
+  app.use(cors(corsConfig))
 app.use(express.json());
 
 //sajib database
@@ -446,9 +451,12 @@ async function run() {
     try {
       // Update the first document that matches the filter
       const result = await bookingCollection.updateOne(query, updateDoc, options);
-
       res.send(result);
-    });
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
 
     // update date
     app.patch(`/mybooking/:id`, async (req, res) => {
