@@ -419,8 +419,6 @@ async function run() {
           rent_price: { $gte: minPrice, $lte: maxPrice },
         };
 
-        // console.log(query)
-
         // Query the database to find properties within the specified rent_price range
         const filteredProperties = await addPropertyCollection.find(query).toArray();
 
