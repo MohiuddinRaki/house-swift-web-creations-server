@@ -407,6 +407,48 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.findOne(query);
+      res.send(result)
+    })
+    app.get("/allProperties/filterByPrice", async (req, res) => {
+      try {
+        const minPrice = "500";
+        const maxPrice = "900";
+
+        const query = {
+          rent_price: { $gte: minPrice, $lte: maxPrice },
+        };
+
+        // console.log(query)
+
+        // Query the database to find properties within the specified rent_price range
+        const filteredProperties = await addPropertyCollection.find(query).toArray();
+
+        res.send(filteredProperties);
+      } catch (error) {
+        console.error("Error while fetching filtered properties:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+  // update date 
+  app.patch(`/mybooking/:id`, async (req, res) => {
+    const id = req.params.id;
+    const Chack_In_Date = req.body.Chack_In_Date;
+    // console.log(req.body.Chack_In_Date)
+    const Chack_out_Date = req.body.Chack_out_Date;
+  
+    const query = { _id: new ObjectId(id) };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: {
+        Chack_In_Date: Chack_In_Date,
+        Chack_out_Date: Chack_out_Date
+      }
+    };
+    try {
+      // Update the first document that matches the filter
+      const result = await bookingCollection.updateOne(query, updateDoc, options);
+
       res.send(result);
     });
 
